@@ -4,7 +4,8 @@ const express = require('express');
 const crypto = require('crypto');
 const { Client } = require('@line/bot-sdk');
 const { insertUserID } = require('./database');
-
+const { getAdminLineAccountInfo, getUserLineName } = require('./line_api');
+const axios = require('axios');
 const app = express();
 
 const config = {
@@ -20,22 +21,26 @@ function validateSignature(body, signature, channelSecret) {
 }
 
 
-let data={
+let user_info={
     user_id : ""
 }
+
+
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  
     const signature = req.headers['x-line-signature'];
     const body = req.body.toString('utf-8');
 
     if (validateSignature(body, signature, config.channelSecret)) {
-        console.log('署名検証成功');
-        console.log('受信したデータ:', body); // 受信したデータをコンソールに出力
+        // console.log('署名検証成功');
+        // console.log('受信したデータ:', body); // 受信したデータをコンソールに出力
   
         const events = JSON.parse(body).events;
         // user IDのみを取得してデータベースに保存する
-        data["user_id"] = JSON.parse(body).events[0].source.userId
-        console.log(data["user_id"] );
-        console.log(data["user_id"] );
+        user_info["user_id"] = JSON.parse(body).events[0].source.userId
+
+        console.log(user_info["user_id"] );
+
 
 
         Promise
@@ -54,30 +59,49 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
 // イベントハンドラー
 function handleEvent(event) {
+    console.log("hei");
     if (event.type === 'message' && event.message.type === 'text') {
         // テキストメッセージイベントの場合
-        const templateMessage = {
-            type: 'template',
-            altText: 'This is a buttons template',
-            template: {
-                type: 'buttons',
-                // thumbnailImageUrl: 'https://example.com/bot/images/image.jpg',
-                // imageAspectRatio: 'rectangle',
-                // imageSize: 'cover',
-                // imageBackgroundColor: '#FFFFFF',
-                // title: 'ご質問',
-                text: 'メッセージは下記リンクより送信いただけます。',
-                actions: [
-                    {
-                        type: 'uri',
-                        label: 'チャットを確認',
-                        uri: 'http://example.com/page/123'
-                    }
-                ]
-            }
-        };
+
         
-        return client.replyMessage(event.replyToken, templateMessage);
+        getAdminLineAccountInfo(axios)
+            .then(admin_user_id => {
+                getUserLineName(user_info["user_id"])
+                    .then(user_data =>{
+                        insertUserID(user_info["user_id"], admin_user_id, user_data[0], user_data[1])
+                        .then(()=>{
+                            console.log(`https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`);
+                            const templateMessage = {
+                                type: 'template',
+                                altText: 'This is a buttons template',
+                                template: {
+                                    type: 'buttons',
+                                    // thumbnailImageUrl: 'https://example.com/bot/images/image.jpg',
+                                    // imageAspectRatio: 'rectangle',
+                                    // imageSize: 'cover',
+                                    // imageBackgroundColor: '#FFFFFF',
+                                    // title: 'ご質問',
+                                    text: 'メッセージは下記リンクより送信いただけます。',
+                                    actions: [
+                                        {
+                                            type: 'uri',
+                                            label: 'チャットを確認',
+                                            uri: `https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`
+
+                                        }
+                                    ]
+                                }
+                            };
+                       return client.replyMessage(event.replyToken, templateMessage);
+                        })
+                 
+                    })
+                
+            })
+
+            
+
+        
     } else if (event.type === 'follow') {
         // 友達追加イベントの場合
     const templateMessage = {
@@ -96,7 +120,14 @@ function handleEvent(event) {
         }
     };
     
-        insertUserID(data["user_id"] )
+        insertUserID(user_info["user_id"] )
+        axios.post('https://twitter-clone.click/api/notify', user_info["user_id"] )
+            .then(response => {
+                console.log('Notification sent to Laravel:', response.data);
+            })
+            .catch(error => {
+                console.error('Error notifying Laravel:', error);
+            });
         return client.replyMessage(event.replyToken, templateMessage);
         
     } else {
@@ -110,7 +141,7 @@ app.get('/test', (req, res) => {
     res.send('Server is working!');
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
@@ -138,3 +169,5 @@ app.get('/send-message', (req, res) => {
 
     res.send('メッセージを送信しました');
 });
+
+

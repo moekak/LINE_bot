@@ -66,69 +66,72 @@ function handleEvent(event) {
         
         getAdminLineAccountInfo(axios)
             .then(admin_user_id => {
-                getUserLineName(user_info["user_id"])
-                    .then(user_data =>{
-                        insertUserID(user_info["user_id"], admin_user_id, user_data[0], user_data[1])
-                        .then(()=>{
-                            console.log(`https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`);
-                            const templateMessage = {
-                                type: 'template',
-                                altText: 'This is a buttons template',
-                                template: {
-                                    type: 'buttons',
-                                    // thumbnailImageUrl: 'https://example.com/bot/images/image.jpg',
-                                    // imageAspectRatio: 'rectangle',
-                                    // imageSize: 'cover',
-                                    // imageBackgroundColor: '#FFFFFF',
-                                    // title: 'ご質問',
-                                    text: 'メッセージは下記リンクより送信いただけます。',
-                                    actions: [
-                                        {
-                                            type: 'uri',
-                                            label: 'チャットを確認',
-                                            uri: `https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`
+                console.log(`https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`);
+                const templateMessage = {
+                    type: 'template',
+                    altText: 'This is a buttons template',
+                    template: {
+                        type: 'buttons',
+                        // thumbnailImageUrl: 'https://example.com/bot/images/image.jpg',
+                        // imageAspectRatio: 'rectangle',
+                        // imageSize: 'cover',
+                        // imageBackgroundColor: '#FFFFFF',
+                        // title: 'ご質問',
+                        text: 'メッセージは下記リンクより送信いただけます。',
+                        actions: [
+                            {
+                                type: 'uri',
+                                label: 'チャットを確認',
+                                uri: `https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`
 
-                                        }
-                                    ]
-                                }
-                            };
-                       return client.replyMessage(event.replyToken, templateMessage);
-                        })
-                 
-                    })
-                
+                            }
+                        ]
+                    }
+                };
+            return client.replyMessage(event.replyToken, templateMessage);
+             
             })
 
             
 
         
     } else if (event.type === 'follow') {
+        console.log("222");
         // 友達追加イベントの場合
-    const templateMessage = {
-        type: 'template',
-        template: {
-            type: 'buttons',
-            title: 'ご質問',
-            text: '今までは副業の経験はありますかー？？',
-            actions: [
-                {
-                    type: 'uri',
-                    label: 'チャットを確認',
-                    uri: 'http://example.com/page/123'
-                }
-            ]
-        }
-    };
+   
     
-        insertUserID(user_info["user_id"] )
-        axios.post('https://twitter-clone.click/api/notify', user_info["user_id"] )
-            .then(response => {
-                console.log('Notification sent to Laravel:', response.data);
-            })
-            .catch(error => {
-                console.error('Error notifying Laravel:', error);
-            });
-        return client.replyMessage(event.replyToken, templateMessage);
+    getAdminLineAccountInfo(axios)
+        .then(admin_user_id => {
+            getUserLineName(user_info["user_id"])
+                .then(user_data =>{
+                    insertUserID(user_info["user_id"], admin_user_id, user_data[0], user_data[1])
+                    .then(()=>{
+                        console.log(`https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`);
+
+                        const templateMessage = {
+                            type: 'template',
+                            altText: 'This is a buttons template',
+                            template: {
+                                type: 'buttons',
+                                title: 'ご質問',
+                                text: '今までは副業の経験はありますかー？？',
+                                actions: [
+                                    {
+                                        type: 'uri',
+                                        label: 'チャットを確認',
+                                        uri: `https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`
+        
+                                    }
+                                ]
+                            }
+                        };
+                        console.log(templateMessage);
+                        return client.replyMessage(event.replyToken, templateMessage);
+                    })
+            
+                })
+            
+        })
         
     } else {
         // その他のイベントは無視

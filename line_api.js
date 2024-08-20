@@ -16,8 +16,8 @@ const getAdminLineAccountInfo = (axios)=>{
                     resolve(admin_user_id);
                 })
                 .catch(error => {
-                    console.error('Error fetching bot information:', error.response ? error.response.data : error.message);
-                    reject(error);
+                  //   console.error('Error fetching bot information:', error.response ? error.response.data : error.message);
+                  //   reject(error);
                 });
         });
 
@@ -33,14 +33,14 @@ function getUserLineName(user_id) {
 
       axios.get(`https://api.line.me/v2/bot/profile/${user_id}`, config)
             .then(response => {
-                  console.log(response.data);
+                  // console.log(response.data);
                   const user_name = response.data.displayName
                   const user_picture = response.data.pictureUrl
                   resolve([user_name, user_picture])
             })
             .catch(error => {
-                  console.error('Error fetching user profile:', error.response ? error.response.data : error.message);
-                  reject(error)
+                  // console.error('Error fetching user profile:', error.response ? error.response.data : error.message);
+                  // reject(error)
             });  
       })
       

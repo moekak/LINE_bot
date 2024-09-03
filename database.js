@@ -39,6 +39,14 @@ connection.connect((err) => {
 
 const insertUserID = (user_id, account_id, user_name, user_picture) => {
   return new Promise((resolve, reject) => {
+
+    if (user_picture == undefined){
+      user_picture = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
+    }
+
+
+
+    
       const select_query = 'SELECT id FROM line_accounts WHERE account_id = ?';
       connection.query(select_query, [account_id], (err, results) => {
           if (err) {

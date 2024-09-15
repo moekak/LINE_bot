@@ -59,7 +59,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
 // イベントハンドラー
 function handleEvent(event) {
-    console.log("hei");
+
     if (event.type === 'message' && event.message.type === 'text') {
         // テキストメッセージイベントの場合
 
@@ -96,7 +96,7 @@ function handleEvent(event) {
 
         
     } else if (event.type === 'follow') {
-        console.log("222");
+
         // 友達追加イベントの場合
    
     
@@ -104,6 +104,8 @@ function handleEvent(event) {
         .then(admin_user_id => {
             getUserLineName(user_info["user_id"])
                 .then(user_data =>{
+                    console.log(user_data);
+                    
                     insertUserID(user_info["user_id"], admin_user_id, user_data[0], user_data[1])
                     .then(()=>{
                         console.log(`https://line-chat.tokyo/chat/${admin_user_id}/${user_info["user_id"]}`);
@@ -141,6 +143,22 @@ function handleEvent(event) {
 
 // テストエンドポイント
 app.get('/test', (req, res) => {
+    const channelAccessToken = 'BNB/7weqbM+rh+/DQOR64lvtlwe1zXBBKviMj5wIrtV2NW4eAo1xe0qC8Tja5UewIEUCnjTzVfKMeZlzK76Wk9T/Wgl47pfWeCFCopsX3WABCkmVn0EX3JPXhmwtU6qXxGlaNOeccX/OYHgYI0GqlwdB04t89/1O/w1cDnyilFU=';
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${channelAccessToken}`,
+        },
+    };
+
+    const url = 'https://api.line.me/v2/bot/info';
+    axios.get(url, config)
+        .then(response => {
+            console.log(response.data);
+        })
+        .catch(error => {
+          //   console.error('Error fetching bot information:', error.response ? error.response.data : error.message);
+          //   reject(error);
+        });
     res.send('Server is working!');
 });
 
@@ -174,3 +192,4 @@ app.get('/send-message', (req, res) => {
 });
 
 
+getAdminLineAccountInfo(axios)

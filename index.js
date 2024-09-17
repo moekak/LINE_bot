@@ -114,55 +114,55 @@ const handleEvent = (event) => {
     }
 }
 
-// テストエンドポイント
-app.get('/test', (req, res) => {
-    const channelAccessToken = 'SGhx03izYuFtsEaNT1UrvEYOqsxtronY1041KfyHNYtdVQMGTzrApsBLISvB74wehNfDE83Qgtg7lrkPKpAceWSBAln25bIypZ57FCemFQOro5+OnGF5/bm+11pg1z0wisbvymCvofsjcx+L53So2AdB04t89/1O/w1cDnyilFU=';
-    const config = {
-        headers: {
-            'Authorization': `Bearer ${channelAccessToken}`,
-        },
-    };
+// // テストエンドポイント
+// app.get('/test', (req, res) => {
+//     const channelAccessToken = 'SGhx03izYuFtsEaNT1UrvEYOqsxtronY1041KfyHNYtdVQMGTzrApsBLISvB74wehNfDE83Qgtg7lrkPKpAceWSBAln25bIypZ57FCemFQOro5+OnGF5/bm+11pg1z0wisbvymCvofsjcx+L53So2AdB04t89/1O/w1cDnyilFU=';
+//     const config = {
+//         headers: {
+//             'Authorization': `Bearer ${channelAccessToken}`,
+//         },
+//     };
 
-    const url = 'https://api.line.me/v2/bot/info';
-    axios.get(url, config)
-        .then(response => {
-            console.log(response.data);
-        })
-        .catch(error => {
-          //   console.error('Error fetching bot information:', error.response ? error.response.data : error.message);
-          //   reject(error);
-        });
-    res.send('Server is working!');
-});
+//     const url = 'https://api.line.me/v2/bot/info';
+//     axios.get(url, config)
+//         .then(response => {
+//             console.log(response.data);
+//         })
+//         .catch(error => {
+//           //   console.error('Error fetching bot information:', error.response ? error.response.data : error.message);
+//           //   reject(error);
+//         });
+//     res.send('Server is working!');
+// });
 
-const port = process.env.PORT || 3001;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-
-
-
-// メッセージを任意のタイミングで送信
-app.get('/send-message', (req, res) => {
-    const message = "ヤッホー"
-    userIds = ["U816cc8212a3ede3d46f5822903f65d55", "U7f0efeb4f8af446c5d8695a7b33da061"]
-
-    // 保存された全てのユーザーにメッセージを送信
-    userIds.forEach(userId => {
-        client.pushMessage(userId, {
-            type: 'text',
-            text: message
-        })
-        .then(() => {
-            console.log(`メッセージを送信しました: ${userId}`);
-        })
-        .catch((err) => {
-            console.error(err);
-        });
-    });
-
-    res.send('メッセージを送信しました');
-});
+// const port = process.env.PORT || 3001;
+// app.listen(port, () => {
+//     console.log(`Server is running on port ${port}`);
+// });
 
 
-getAdminLineAccountInfo(axios)
+
+// // メッセージを任意のタイミングで送信
+// app.get('/send-message', (req, res) => {
+//     const message = "ヤッホー"
+//     userIds = ["U816cc8212a3ede3d46f5822903f65d55", "U7f0efeb4f8af446c5d8695a7b33da061"]
+
+//     // 保存された全てのユーザーにメッセージを送信
+//     userIds.forEach(userId => {
+//         client.pushMessage(userId, {
+//             type: 'text',
+//             text: message
+//         })
+//         .then(() => {
+//             console.log(`メッセージを送信しました: ${userId}`);
+//         })
+//         .catch((err) => {
+//             console.error(err);
+//         });
+//     });
+
+//     res.send('メッセージを送信しました');
+// });
+
+
+// getAdminLineAccountInfo(axios)

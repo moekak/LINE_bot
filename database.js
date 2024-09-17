@@ -24,19 +24,6 @@ connection.connect((err) => {
 });
 
 
-
-// // アプリケーションが終了する前に接続を終了
-// process.on('SIGINT', () => {
-//   connection.end((err) => {
-//     if (err) {
-//       console.error('データベース接続の終了に失敗しました:', err);
-//     }
-//     console.log('データベース接続を終了しました');
-//     process.exit();
-//   });
-// });
-
-
 const insertUserID = (user_id, account_id, user_name, user_picture) => {
   return new Promise((resolve, reject) => {
 
@@ -70,7 +57,7 @@ const insertUserID = (user_id, account_id, user_name, user_picture) => {
                       if (err) {
                           if (err.code === 'ER_DUP_ENTRY') {
                               // ユニーク制約違反（重複エラー）時にUUIDを再生成して再試行
-                              console.log('UUIDが重複しました。再試行します...');
+
                               insertUUID();  // 再試行
                           } else {
                               reject(err);  // その他のエラー処理

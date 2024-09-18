@@ -1,3 +1,8 @@
+#必要なライブラリーインストール
+
 npm install mysql2
 npm install axios
-npm install ws
+npm install express
+npm install @line/bot-sdk
+npm install crypto
+npm install dotenv

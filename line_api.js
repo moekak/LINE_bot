@@ -33,6 +33,7 @@ const getUserLineName = (user_id) =>{
 
 		axios.get(`https://api.line.me/v2/bot/profile/${user_id}`, config)
 		.then(response => {
+
 			const user_name = response.data.displayName
 			const user_picture = response.data.pictureUrl
 			resolve([user_name, user_picture])

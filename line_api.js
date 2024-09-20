@@ -13,7 +13,11 @@ const getAdminLineAccountInfo = ()=>{
 		const url = 'https://api.line.me/v2/bot/info';
 		axios.get(url, config)
 		.then(response => {
+
+			
+			
 			const admin_user_id = response.data.userId;
+			console.log(admin_user_id);
 			resolve(admin_user_id);
 		})
 		.catch(error => {

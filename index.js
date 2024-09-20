@@ -85,3 +85,5 @@ const handleEvent = (event) => {
         })
 }
 
+
+getAdminLineAccountInfo()

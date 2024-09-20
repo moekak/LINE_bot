@@ -8,6 +8,8 @@ const { getAdminLineAccountInfo, getUserLineName } = require('./line_api');
 const axios = require('axios');
 const { generateMessageTemplate, generateGreetingMessageTemplate } = require('./template');
 const app = express();
+// MySQLデータベースとのやり取りをPromiseベースで行えるライブラリ
+const mysql = require('mysql2/promise'); // promiseベースでmysqlを使う
 
 
 // サーバーをポート3001で起動
@@ -63,26 +65,49 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
 
 // イベントハンドラー
-const handleEvent = (event) => {
-    return getAdminLineAccountInfo()
-        .then(admin_user_id =>{
-            if(event.type === 'message' && event.message.type === 'text') {
-                return client.replyMessage(event.replyToken, generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
+const handleEvent = async (event) => {
+    let connection;
+    try{
+        // DB接続を確立
+        connection = await mysql.createConnection({
+            host: process.env.DB_HOST,      // データベースホスト
+            user: process.env.DB_USER,      // データベースユーザー
+            password: process.env.DB_PASS, 	// データベースパスワード
+            database: process.env.DB_NAME,  // データベース名
+        });
 
-            }else if(event.type === 'follow') {
-                return getUserLineName(account_info["user_account_id"])
-                    .then(user_data =>{
-                        return insertUserID(account_info["user_account_id"], admin_user_id, user_data[0], user_data[1])
-                    })
-                    .then(()=>{
-                        return client.replyMessage(event.replyToken, generateGreetingMessageTemplate(admin_user_id, account_info["user_account_id"]));
-                    })
+         // ここでDB接続を使用して処理を実行
+         const admin_user_id = await getAdminLineAccountInfo();
 
-            }else{
-                //もしeventがmessageでもfollowでもない場合、何も処理しない
-                return Promise.resolve(null);
-            }
-        })
+
+
+         if (event.type === 'message' && event.message.type === 'text') {
+             return client.replyMessage(event.replyToken, generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
+ 
+         } else if (event.type === 'follow') {
+             const user_data = await getUserLineName(account_info["user_account_id"]);
+             
+             await insertUserID(connection, account_info["user_account_id"], admin_user_id, user_data[0], user_data[1]);
+ 
+             return client.replyMessage(event.replyToken, generateGreetingMessageTemplate(admin_user_id, account_info["user_account_id"]));
+ 
+         } else {
+             // eventがmessageでもfollowでもない場合、何も処理しない
+             return Promise.resolve(null);
+         }
+
+
+    }catch (error) {
+        console.error('Error handling event:', error);
+        throw error;
+    // 必ず実行されることを保証
+    } finally {
+        if (connection) {
+            // DB接続をクローズ
+            await connection.end();
+        }
+    }
+
 }
 
 

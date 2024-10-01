@@ -56,5 +56,5 @@ const insertUUID = async (connection, chatUserId)=>{
 
 // Node.jsのデフォルトのモジュールシステムはCommonJSのため、エクスポートするにはmodule.exportsまたはexportsを使用
 module.exports = {
-    insertUserID
+	insertUserID
 };

@@ -77,24 +77,24 @@ const handleEvent = async (event) => {
         });
 
          // ここでDB接続を使用して処理を実行
-         const admin_user_id = await getAdminLineAccountInfo();
+        const admin_user_id = await getAdminLineAccountInfo();
 
 
 
-         if (event.type === 'message' && event.message.type === 'text') {
-             return client.replyMessage(event.replyToken, generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
- 
-         } else if (event.type === 'follow') {
-             const user_data = await getUserLineName(account_info["user_account_id"]);
-             
-             await insertUserID(connection, account_info["user_account_id"], admin_user_id, user_data[0], user_data[1]);
- 
-             return client.replyMessage(event.replyToken, generateGreetingMessageTemplate(admin_user_id, account_info["user_account_id"]));
- 
-         } else {
-             // eventがmessageでもfollowでもない場合、何も処理しない
-             return Promise.resolve(null);
-         }
+        if (event.type === 'message' && event.message.type === 'text') {
+            return client.replyMessage(event.replyToken, generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
+
+        } else if (event.type === 'follow') {
+            const user_data = await getUserLineName(account_info["user_account_id"]);
+            
+            await insertUserID(connection, account_info["user_account_id"], admin_user_id, user_data[0], user_data[1]);
+
+            return client.replyMessage(event.replyToken, generateGreetingMessageTemplate(admin_user_id, account_info["user_account_id"]));
+
+        } else {
+            // eventがmessageでもfollowでもない場合、何も処理しない
+            return Promise.resolve(null);
+        }
 
 
     }catch (error) {
@@ -111,4 +111,5 @@ const handleEvent = async (event) => {
 }
 
 
-getAdminLineAccountInfo()
+console.log(getAdminLineAccountInfo());
+

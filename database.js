@@ -49,10 +49,11 @@ const insertUUID = async (connection, chatUserId)=>{
 			}
 		}
 	}
-	
-	
 }
 
+const getChannelTokenAndSecretToekn = async () =>{
+	
+}
 
 // Node.jsのデフォルトのモジュールシステムはCommonJSのため、エクスポートするにはmodule.exportsまたはexportsを使用
 module.exports = {

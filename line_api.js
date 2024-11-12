@@ -1,15 +1,15 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const config = {
-	headers: {
-		'Authorization': `Bearer ${process.env.CHANNEL_ACCESS_TOKEN}`,
-	},
-};
-
-
 const getAdminLineAccountInfo = async ()=>{
 	const url = 'https://api.line.me/v2/bot/info';
+
+	const config = {
+		headers: {
+			'Authorization': `Bearer ${global.currentConfig.channelAccessToken}`,
+		},
+	};
+
 	try{
 		const response 		= await axios.get(url, config); // 'response'オブジェクトを取得
 		const admin_user_id = response.data.userId;    		  // 'response.data'から'userId'を取得
@@ -22,6 +22,12 @@ const getAdminLineAccountInfo = async ()=>{
 }
 
 const getUserLineName = async (user_id) =>{
+
+	const config = {
+		headers: {
+			'Authorization': `Bearer ${global.currentConfig.channelAccessToken}`,
+		},
+	};
 	try{
 		const response 	= await axios.get(`https://api.line.me/v2/bot/profile/${user_id}`, config) 	// 'response'オブジェクトを取得
 		const user_name 	= response.data.displayName                                               	// 'response.data'から'user_name'を取得

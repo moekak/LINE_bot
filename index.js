@@ -2,13 +2,14 @@ require('dotenv').config();
 const express = require('express');
 // 暗号化やハッシュ化を行うライブラリ
 const crypto = require('crypto');
-const { Client } = require('@line/bot-sdk');
-const { insertUserID } = require('./database');
-const { getAdminLineAccountInfo, getUserLineName } = require('./line_api');
-const { generateMessageTemplate, generateGreetingMessageTemplate } = require('./template');
+const { Client　} = require('@line/bot-sdk');
+const { getAdminLineAccountInfo, getUserLineName } = require('./util/line_api');
+const { generateMessageTemplate, generateGreetingMessageTemplate } = require('./util/template');
 const app = express();
 // MySQLデータベースとのやり取りをPromiseベースで行えるライブラリ
 const mysql = require('mysql2/promise'); // promiseベースでmysqlを使う
+const { insertUserID, getChannelTokenAndSecretToekn } = require('./util/database');
+const { decryptLaravelData } = require('./util/decryptor');
 
 
 // nodeサーバーをポート3001で起動
@@ -17,24 +18,18 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
+let configs = [];
 
-app.get('/test', (req, res) => {
-    res.send('Hello World!');
-});
-
-//Redisサーバーを起動
-
-// LINE情報
-const configs = [
-    {
-        channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN1,
-        channelSecret: process.env.CHANNEL_SECRET1
-    },
-    {
-        channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN2,
-        channelSecret: process.env.CHANNEL_SECRET2
-    }
-]
+// チャネルアクセストークンとチャネルシークレットを復号化する
+(async () => {
+	try {
+		const tokens = await getChannelTokenAndSecretToekn(mysql);
+		const decryptedData = await decryptLaravelData(tokens);
+        configs = decryptedData
+	} catch (error) {
+		console.error('Error fetching tokens:', error);
+	}
+})();
 
 
 
@@ -68,7 +63,9 @@ let account_info={
 
 
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-    
+
+    console.log(configs);
+
     const signature = req.headers['x-line-signature'];
     const body = req.body.toString('utf-8');
 
@@ -147,48 +144,25 @@ const handleEvent = async (event, client) => {
 }
 
 
-// """"""""""""""""""""""""""""""""""""""
-//         websocket
-// """"""""""""""""""""""""""""""""""""""
-
-// app.get('/test', (req, res) => {
-//     res.send('Hello World!');
-// });
-
-// const https = require('https');
-// const fs = require('fs');
-// const socketIo = require('socket.io');
-// require('dotenv').config();
 
 
-// // SSL/TLS 証明書の読み込み
-// const options = {
-//     key: fs.readFileSync("/www/server/panel/vhost/letsencrypt/chat-bot.tokyo/privkey.pem"),
-//     cert: fs.readFileSync("/www/server/panel/vhost/letsencrypt/chat-bot.tokyo/fullchain.pem"),
-// };
+//リクエストボディをJSONフォーマットとして解析するための設定
+app.use(express.json());
+// URL-encodedボディパーサーも追加
+app.use(express.urlencoded({ extended: true }));
 
-// // HTTPS サーバーの作成
-// const server = https.createServer(options, app);
-// //指定されたドメインのみが WebSocket 経由で通信できるようにする
-// // WebSocket プロトコルの性質上、別途 Socket.IO 側でも CORS 設定（必須ではない）
-// const io = socketIo(server, {
-//     cors: {
-//         origin: ["http://127.0.0.1:8000", "https://twitter-clone.click", "https://chat-bot.tokyo"], // オリジンを追加
-//         methods: ['GET', 'POST'],
-//     },
-// });
+app.get('/test', (req, res) => {
+    res.send('Hello World!');
+});
 
-// // // 静的ファイルの提供
-// // app.use(express.static('public'));
+app.post("/notify", (req, res)=>{
+    const { channel_access_token, channel_secret } = req.body;
+    configs.push({
+        channelAccessToken: channel_access_token,
+        channelSecret: channel_secret
+    })
 
-// const userSockets = new Map(); // ユーザーIDとソケットのマッピング
-
-
-// // ソケットの接続処理
-// io.on('connection', (socket) => {
-//     console.log("connected!");
-// });
-
-
-
-
+    console.log("Channel Access Token:", channel_access_token);
+    console.log("Channel Secret:", channel_secret);
+    res.json({ message: "Received", data: req.body });
+})

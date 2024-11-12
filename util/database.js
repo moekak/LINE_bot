@@ -51,11 +51,27 @@ const insertUUID = async (connection, chatUserId)=>{
 	}
 }
 
-const getChannelTokenAndSecretToekn = async () =>{
-	
+const getChannelTokenAndSecretToekn = async (mysql) =>{
+	let connection = await mysql.createConnection({
+		host: process.env.DB_HOST,      // データベースホスト
+		user: process.env.DB_USER,      // データベースユーザー
+		password: process.env.DB_PASS, 	// データベースパスワード
+		database: process.env.DB_NAME,  // データベース名
+	});
+	const query = 'SELECT channel_access_token,channel_secret FROM line_accounts';
+	try{
+		const [results] = await connection.query(query);
+		await connection.end()
+		return results
+		
+	}catch(error){
+		console.log(error);
+		
+	}
 }
 
 // Node.jsのデフォルトのモジュールシステムはCommonJSのため、エクスポートするにはmodule.exportsまたはexportsを使用
 module.exports = {
-	insertUserID
+	insertUserID,
+	getChannelTokenAndSecretToekn
 };

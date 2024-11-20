@@ -110,7 +110,12 @@ const handleEvent = async (event, client) => {
             user: process.env.DB_USER,      // データベースユーザー
             password: process.env.DB_PASS, 	// データベースパスワード
             database: process.env.DB_NAME,  // データベース名
+            timezone: '+09:00',
+            dateStrings: true,
         });
+
+        // 接続後にタイムゾーンを設定
+        await connection.query('SET time_zone="+09:00"');
 
          // ここでDB接続を使用して処理を実行
         const admin_user_id = await getAdminLineAccountInfo();

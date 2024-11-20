@@ -14,7 +14,7 @@ const insertUserID = async (connection, user_id, account_id, user_name, user_pic
 			
 			results[0]["id"]
 			// 2. chat_users にデータを挿入
-			const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture) VALUES (?, ?, ?, ?)';
+			const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, created_at, updated_at) VALUES (?, ?, ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 			const [insertResults] = await connection.query(query, [user_id, results[0]["id"], user_name, user_picture]);
 
 			// 3. 挿入されたchat_usersテーブルのIDを取得
@@ -35,7 +35,7 @@ const insertUserID = async (connection, user_id, account_id, user_name, user_pic
 
 const insertUUID = async (connection, chatUserId)=>{
 	while(true){
-		const uuidQuery = 'INSERT INTO user_entities (entity_uuid, related_id, entity_type) VALUES (UUID(), ?, ?)';
+		const uuidQuery = 'INSERT INTO user_entities (entity_uuid, related_id, entity_type, created_at, updated_at) VALUES (UUID(), ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 		try{
 			await connection.query(uuidQuery, [chatUserId, 'user']);
 			return;// 成功したらループを抜ける
@@ -57,7 +57,12 @@ const getChannelTokenAndSecretToekn = async (mysql) =>{
 		user: process.env.DB_USER,      // データベースユーザー
 		password: process.env.DB_PASS, 	// データベースパスワード
 		database: process.env.DB_NAME,  // データベース名
+		timezone: '+09:00',
+		dateStrings: true,
 	});
+
+	// 接続後にタイムゾーンを設定
+	await connection.query('SET time_zone="+09:00"');
 	const query = 'SELECT channel_access_token,channel_secret FROM line_accounts';
 	try{
 		const [results] = await connection.query(query);

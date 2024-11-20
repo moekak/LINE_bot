@@ -9,7 +9,7 @@ const generateMessageTemplate = (admin_user_id, user_id) =>{
 				{
 					type: 'uri',
 					label: 'チャットを確認',
-					uri: `https://line-chat.tokyo/chat/${admin_user_id}/${user_id}`
+					uri: `https://chat-system.tokyo/chat/${admin_user_id}/${user_id}`
 
 				}
 			]
@@ -29,7 +29,7 @@ const generateGreetingMessageTemplate = (admin_user_id, user_id) =>{
 				{
 					type: 'uri',
 					label: 'チャットを確認',
-					uri: `https://line-chat.tokyo/chat/${admin_user_id}/${user_id}`
+					uri: `https://chat-system.tokyo/chat/${admin_user_id}/${user_id}`
 				}
 			]
 		}

@@ -65,6 +65,7 @@ let account_info={
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
     console.log(configs);
+    // res.status(200).send('OK');
 
     const signature = req.headers['x-line-signature'];
     const body = req.body.toString('utf-8');

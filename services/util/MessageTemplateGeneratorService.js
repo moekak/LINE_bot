@@ -3,7 +3,7 @@ const MessageTemplateGeneratorError = require('../error/MessageTemplateGenerator
 require('dotenv').config();
 
 class MessageTemplateGeneratorService{
-      constructor(adminUserId, userId){
+      constructor(){
             if(!process.env.SYSTEM_URL) throw new MessageTemplateGeneratorError("SYSTEM_URLが指定されていません")
             this.systemUrl = process.env.SYSTEM_URL
       }

@@ -74,25 +74,6 @@ class WriteErrorLog{
             await fs.appendFile(filePath, content, 'utf8');
       }
 
-      // async #sendErrorMsgToLine(message) {
-      //       try {
-      //           // LINE NotifyにPOSTリクエストを送信
-      //       const response = await axios.post(
-      //             process.env.LINE_NOTIFY_URL,
-      //             new URLSearchParams({ message: message }).toString(),
-      //             {
-      //             headers: {
-      //                   'Content-Type': 'application/x-www-form-urlencoded',
-      //                   Authorization: `Bearer ${process.env.LINE_NOTIFY_TOKEN}`,
-      //             },
-      //             }
-      //       );
-      //       console.log('エラーメッセージがLINE Notifyに送信されました:', response.data);
-      // } catch (err) {
-      //       console.error('LINE Notifyへの通知に失敗しました:', err.response?.data || err.message);
-      // }
-      // }
-
 
       async #sendErrorMsgToLine(message){
             try {

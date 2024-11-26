@@ -5,12 +5,11 @@ const crypto = require('crypto');
 const { Client} = require('@line/bot-sdk');
 const app = express();
 // MySQLデータベースとのやり取りをPromiseベースで行えるライブラリ
-const mysql = require('mysql2/promise'); // promiseベースでmysqlを使う
 const DatabaseQueryService = require('./services/util/DatabaseQueryService.js');
 const LineApiService = require('./services/util/LineApiService.js');
 const WriteErrorLog = require('./services/util/WriteErrorLog.js');
-const DecryptService = require('./services/util/DecryptService.js');
 const MessageTemplateGeneratorService = require('./services/util/MessageTemplateGeneratorService.js');
+const ChannelTokenService = require('./services/util/ChannelTokenService.js');
 
 
 // nodeサーバーをポート3001で起動
@@ -19,28 +18,20 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
-let configs = [];
+
 const databaseQueryService = new DatabaseQueryService()
 const writeErrorLog = new WriteErrorLog()
-
-// チャネルアクセストークンとチャネルシークレットを復号化する
-async function initialize() {
-    try {
-        const tokens = await databaseQueryService.getChannelTokenAndSecretToekn(mysql);
-           // インスタンスの作成
-        const decryptService = new DecryptService(tokens)
-        const decryptedData = await decryptService.decryptData();
-        configs = decryptedData
-    } catch (error) {
-        await writeErrorLog.writeLog(error)
-    }
-}
-initialize()
-
+const channelTokenService = new ChannelTokenService()
 
 // 署名の検証を行う
 // 複数のChannel Secretで検証を行う関数
 const validateSignatureWithMultipleSecrets = async (body, signature) =>{
+    let configs = await channelTokenService.generateConfig()
+
+    console.log(configs);
+    console.log("aaaaaaaaaaaaaaaaaa");
+    
+    
     for (const config of configs) {
         try {
             const hash = crypto
@@ -150,16 +141,20 @@ app.get('/test', (req, res) => {
     res.send('Hello World!');
 });
 
-app.post("/notify", async (req, res)=>{
-    try{
-        const { channel_access_token, channel_secret } = req.body;
-        configs.push({
-            channelAccessToken: channel_access_token,
-            channelSecret: channel_secret
-        })
-        res.json({ message: "Received", data: req.body });
-    }catch(error){
-        await writeErrorLog.writeLog(error)
-    }
+app.get('/healthcheck', (req, res) => {
+    res.status(200).send('OK');
+});
+
+// app.post("/notify", async (req, res)=>{
+//     try{
+//         const { channel_access_token, channel_secret } = req.body;
+//         configs.push({
+//             channelAccessToken: channel_access_token,
+//             channelSecret: channel_secret
+//         })
+//         res.json({ message: "Received", data: req.body });
+//     }catch(error){
+//         await writeErrorLog.writeLog(error)
+//     }
     
-})
+// })

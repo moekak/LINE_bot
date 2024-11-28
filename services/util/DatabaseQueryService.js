@@ -63,9 +63,21 @@ class DatabaseQuery{
 	}
 
 	async getChannelTokenAndSecretToekn(){
-		const query = 'SELECT channel_access_token,channel_secret FROM line_accounts';
-		const [results] = await db.executeQuery(query);
-		return results
+		console.log("databse");
+		try{
+			// データベース接続チェック
+			
+			const query = 'SELECT channel_access_token,channel_secret FROM line_accounts';
+			const [results] = await db.executeQuery(query);
+	
+			console.log(results);
+			
+			return results
+		}catch(error){
+			throw new DatabaseQueryError('getChannelTokenAndSecretToeknに失敗しました', error);
+		}
+		
+	
 	}
 }
 

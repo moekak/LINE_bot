@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');  // promise版を使用
+const DatabaseQueryError = require('./error/DatabaseQueryError');
 
 class Database {
       constructor() {
@@ -19,6 +20,7 @@ class Database {
             try {
                   return await this.pool.getConnection();
             } catch (error) {
+                  console.error('Error getting connection from pool:', error);
                   throw new DatabaseQueryError("プールから接続に失敗しました")
             }
       }

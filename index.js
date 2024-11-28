@@ -26,6 +26,9 @@ const channelTokenService = new ChannelTokenService()
 // 署名の検証を行う
 // 複数のChannel Secretで検証を行う関数
 const validateSignatureWithMultipleSecrets = async (body, signature) =>{
+
+    console.log("222222");
+    
     let configs = await channelTokenService.generateConfig()
 
     console.log(configs);

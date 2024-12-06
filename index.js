@@ -111,6 +111,7 @@ const handleEvent = async (event, client) => {
         } else if (event.type === 'follow') {
             console.log(await databaseQueryService.checkIfUserExists(account_info["user_account_id"]));
             
+            // もしすでに追加があった場合は初回メッセージのボタンではなく、別のメッセージボタンを送信する
             if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"])){
                 return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
             }

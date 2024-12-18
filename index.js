@@ -29,7 +29,7 @@ const validateSignatureWithMultipleSecrets = async (body, signature) =>{
     let configs = await channelTokenService.generateConfig()
 
     console.log(configs);
-    console.log("aaaaaaaaaaaaaaaaaa");
+    // console.log("aaaaaaaaaaaaaaaaaa");
     
     
     for (const config of configs) {
@@ -60,12 +60,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     try{
         const signature = req.headers['x-line-signature'];
         const body = req.body.toString('utf-8');
-
-        console.log("Received Signature:", signature);
-        console.log("Received Body:", body);
     
         if (await validateSignatureWithMultipleSecrets(body, signature)) {
             const events = JSON.parse(body).events;
+
+            console.log(events);
+            console.log("EVENTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+            
+            
             //LINEのAPIにアクセスするためのクライアントを作成
             // このクライアントを通じてメッセージ送信などのAPIリクエストを行う
     
@@ -104,15 +106,24 @@ const handleEvent = async (event, client) => {
         const messageTemplateGeneratorError = new MessageTemplateGeneratorService()
         const admin_user_id = await lineApiService.getAdminLineAccountInfo();
 
+        console.log("関数呼び出し");
+        
+
+
         // もしLINE内にメッセージが送られてきた場合
         if (event.type === 'message' && event.message.type === 'text') {
+
+            console.log("message!");
+            
             return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
 
         } else if (event.type === 'follow') {
-            console.log(await databaseQueryService.checkIfUserExists(account_info["user_account_id"]));
+
+            console.log("follow!!!!!");
+            
             
             // もしすでに追加があった場合は初回メッセージのボタンではなく、別のメッセージボタンを送信する
-            if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"])){
+            if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"], admin_user_id)){
                 return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
             }
 
@@ -123,6 +134,9 @@ const handleEvent = async (event, client) => {
 
         } else {
             // eventがmessageでもfollowでもない場合、何も処理しない
+            console.log("else!!!!");
+            console.log(event.type);
+            
             return Promise.resolve(null);
         }
 
@@ -145,17 +159,3 @@ app.get('/test', (req, res) => {
 app.get('/healthcheck', (req, res) => {
     res.status(200).send('OK');
 });
-
-// app.post("/notify", async (req, res)=>{
-//     try{
-//         const { channel_access_token, channel_secret } = req.body;
-//         configs.push({
-//             channelAccessToken: channel_access_token,
-//             channelSecret: channel_secret
-//         })
-//         res.json({ message: "Received", data: req.body });
-//     }catch(error){
-//         await writeErrorLog.writeLog(error)
-//     }
-    
-// })

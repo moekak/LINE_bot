@@ -29,7 +29,7 @@ const validateSignatureWithMultipleSecrets = async (body, signature) =>{
     let configs = await channelTokenService.generateConfig()
 
     console.log(configs);
-    // console.log("aaaaaaaaaaaaaaaaaa");
+    console.log("aaaaaaaaaaaaaaaaaa");
     
     
     for (const config of configs) {
@@ -58,6 +58,7 @@ let account_info={
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try{
+
         const signature = req.headers['x-line-signature'];
         const body = req.body.toString('utf-8');
     

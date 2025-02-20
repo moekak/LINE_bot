@@ -32,11 +32,10 @@ class MessageTemplateGeneratorService{
             if(!adminUserId || !userId) throw new MessageTemplateGeneratorError('adminUserIdまたはuserIdが指定されていません')
             return {
                   type: 'template',
-                  altText: '今までは副業の経験はありますかー？？',
+                  altText: 'メッセージを受信しました。',
                   template: {
                         type: 'buttons',
-                        title: 'ご質問',
-                        text: '今までは副業の経験はありますかー？？',
+                        text: 'メッセージを受信しました。',
                         actions: [
                               {
                                     type: 'uri',

@@ -12,6 +12,10 @@ class ChannelTokenService{
                   const tokens = await this.databaseQueryService.getChannelTokenAndSecretToekn();
                   const decryptService = new DecryptService(tokens)
                   const decryptedData = await decryptService.decryptData();
+
+                  console.log(decryptedData)
+                  console.log("i9i9i");
+                  
                   return decryptedData
             } catch (error) {
                   throw new ChannelTokenError(error)

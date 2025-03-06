@@ -104,15 +104,24 @@ const handleEvent = async (event, client) => {
         const messageTemplateGeneratorError = new MessageTemplateGeneratorService()
         const admin_user_id = await lineApiService.getAdminLineAccountInfo();
 
+        console.log("関数呼び出し");
+        
+
+
         // もしLINE内にメッセージが送られてきた場合
         if (event.type === 'message' && event.message.type === 'text') {
+
+            console.log("message!");
+            
             return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
 
         } else if (event.type === 'follow') {
+
+            console.log("follow!!!!!");
+            
+            
             // もしすでに追加があった場合は初回メッセージのボタンではなく、別のメッセージボタンを送信する
             if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"], admin_user_id)){
-                console.log(account_info["user_account_id"]);
-                
                 return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
             }
 
@@ -123,6 +132,9 @@ const handleEvent = async (event, client) => {
 
         } else {
             // eventがmessageでもfollowでもない場合、何も処理しない
+            console.log("else!!!!");
+            console.log(event.type);
+            
             return Promise.resolve(null);
         }
 

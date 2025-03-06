@@ -79,7 +79,7 @@ class WriteErrorLog{
             try {
                   // LINE NotifyにPOSTリクエストを送信
                   const response = await axios.get(
-                        `https://fast-api.info/send-to-group/?id=68976e6f-37d1-489d-8f4c-020adf7d04ff&message=${message}`
+                        `https://fast-api.info/send-to-group/?id=e1896962-35af-4283-ab07-3bd9217ce981&message=${message}`
                   );
             } catch (err) {
                   console.error('LINE Notifyへの通知に失敗しました:', err);

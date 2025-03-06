@@ -13,7 +13,7 @@ class MessageTemplateGeneratorService{
             if(!adminUserId || !userId) throw new MessageTemplateGeneratorError('adminUserIdまたはuserIdが指定されていません')
             return {
                   type: 'template',
-                  altText: 'This is a buttons template',
+                  altText: 'メッセージは下記リンクより送信いただけます。',
                   template: {
                         type: 'buttons',
                         text: 'メッセージは下記リンクより送信いただけます。',

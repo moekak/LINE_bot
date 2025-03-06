@@ -26,15 +26,9 @@ const channelTokenService = new ChannelTokenService()
 // 署名の検証を行う
 // 複数のChannel Secretで検証を行う関数
 const validateSignatureWithMultipleSecrets = async (body, signature) =>{
-
-    console.log("222222");
-    
     let configs = await channelTokenService.generateConfig()
 
-    console.log(configs);
-    console.log("aaaaaaaaaaaaaaaaaa");
-    
-    
+
     for (const config of configs) {
         try {
             const hash = crypto
@@ -61,14 +55,17 @@ let account_info={
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try{
+
         const signature = req.headers['x-line-signature'];
         const body = req.body.toString('utf-8');
-
-        console.log("Received Signature:", signature);
-        console.log("Received Body:", body);
     
         if (await validateSignatureWithMultipleSecrets(body, signature)) {
             const events = JSON.parse(body).events;
+
+            console.log(events);
+            console.log("EVENTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+            
+            
             //LINEのAPIにアクセスするためのクライアントを作成
             // このクライアントを通じてメッセージ送信などのAPIリクエストを行う
     
@@ -112,9 +109,10 @@ const handleEvent = async (event, client) => {
             return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
 
         } else if (event.type === 'follow') {
-            console.log(await databaseQueryService.checkIfUserExists(account_info["user_account_id"]));
-            
-            if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"])){
+            // もしすでに追加があった場合は初回メッセージのボタンではなく、別のメッセージボタンを送信する
+            if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"], admin_user_id)){
+                console.log(account_info["user_account_id"]);
+                
                 return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
             }
 
@@ -147,17 +145,3 @@ app.get('/test', (req, res) => {
 app.get('/healthcheck', (req, res) => {
     res.status(200).send('OK');
 });
-
-// app.post("/notify", async (req, res)=>{
-//     try{
-//         const { channel_access_token, channel_secret } = req.body;
-//         configs.push({
-//             channelAccessToken: channel_access_token,
-//             channelSecret: channel_secret
-//         })
-//         res.json({ message: "Received", data: req.body });
-//     }catch(error){
-//         await writeErrorLog.writeLog(error)
-//     }
-    
-// })

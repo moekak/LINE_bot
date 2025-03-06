@@ -81,7 +81,6 @@ class WriteErrorLog{
                   const response = await axios.get(
                         `https://fast-api.info/send-to-group/?id=68976e6f-37d1-489d-8f4c-020adf7d04ff&message=${message}`
                   );
-                  console.log('エラーメッセージがLINE Notifyに送信されました:', response.data);
             } catch (err) {
                   console.error('LINE Notifyへの通知に失敗しました:', err);
             }

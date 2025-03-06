@@ -10,24 +10,44 @@ class DatabaseQuery{
 			// 1. account_idに基づいてline_accountsテーブルから管理者アカウントIDを取得
 			const query = 'SELECT id FROM line_accounts WHERE account_id = ?';
 			const [results] = await db.executeQuery(query, [account_id]);
+
+			console.log(results.length);
+			
 	
 			if (results.length > 0) {
-				results[0]["id"]
 				// 2. chat_users にデータを挿入
 				const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, created_at, updated_at) VALUES (?, ?, ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 				const [insertResults] = await db.executeQuery(query, [user_id, results[0]["id"], user_name, user_picture]);
 	
 				// 3. 挿入されたchat_usersテーブルのIDを取得
 				const chatUserId = insertResults.insertId;
+
+				console.log("chatUSerID" + chatUserId);
+				
 	
 				// 4. 中間テーブルにUUIDを挿入（重複エラー時に再試行）
 				await this.insertUUID(chatUserId);
+
+				// 5. chatIdentitiesテーブルにデータを挿入
+				await this.insertChatIdentities(results[0]["id"], chatUserId)
 			} else {
 				throw new DatabaseQueryError("管理者のアカウントIDが存在しません")
 			}
 		}catch(error){
 			if (!(error instanceof DatabaseQueryError)) {
 				throw new DatabaseQueryError('トークン情報の復号化に失敗しました', error);
+			}
+		}
+		
+	}
+
+	async insertChatIdentities(admin_id, user_id){
+		const query = 'INSERT INTO chat_identities (original_admin_id, chat_user_id, created_at, updated_at) VALUES (?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+		try{
+			await db.executeQuery(query, [admin_id, user_id]);
+		}catch(error){
+			if (!(error instanceof DatabaseQueryError)) {
+				throw new DatabaseQueryError('chatIdentitiesテーブルへのデータの挿入でエラーが発生しました。', error);
 			}
 		}
 		
@@ -41,7 +61,7 @@ class DatabaseQuery{
 				return;// 成功したらループを抜ける
 			}catch(err){
 				if (err.code === 'ER_DUP_ENTRY') {
-					console.log('UUIDが重複しているので再試行します');
+		
 					// ユニーク制約違反が発生した場合、再試行
 					continue;
 				} else {
@@ -63,15 +83,13 @@ class DatabaseQuery{
 	}
 
 	async getChannelTokenAndSecretToekn(){
-		console.log("databse");
 		try{
 			// データベース接続チェック
 			
 			const query = 'SELECT channel_access_token,channel_secret FROM line_accounts';
 			const [results] = await db.executeQuery(query);
 	
-			console.log(results);
-			
+	
 			return results
 		}catch(error){
 			throw new DatabaseQueryError('getChannelTokenAndSecretToeknに失敗しました', error);

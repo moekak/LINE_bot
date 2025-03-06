@@ -8,12 +8,8 @@ class ChannelTokenService{
       }
       async generateConfig(){
             try {
-                  console.log("22222222222222222222222222222");
-                  
-                  const tokens = await this.databaseQueryService.getChannelTokenAndSecretToekn();
 
-                  console.log(tokens);
-                  
+                  const tokens = await this.databaseQueryService.getChannelTokenAndSecretToekn();
                   const decryptService = new DecryptService(tokens)
                   const decryptedData = await decryptService.decryptData();
                   return decryptedData

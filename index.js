@@ -62,10 +62,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         if (await validateSignatureWithMultipleSecrets(body, signature)) {
             const events = JSON.parse(body).events;
 
-            console.log(events);
-            console.log("EVENTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
-            
-            
             //LINEのAPIにアクセスするためのクライアントを作成
             // このクライアントを通じてメッセージ送信などのAPIリクエストを行う
     

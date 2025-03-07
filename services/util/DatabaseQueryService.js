@@ -11,25 +11,34 @@ class DatabaseQuery{
 			const query = 'SELECT id FROM line_accounts WHERE account_id = ?';
 			const [results] = await db.executeQuery(query, [account_id]);
 
-			console.log(results.length);
-			
-	
 			if (results.length > 0) {
 				// 2. chat_users にデータを挿入
 				const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, created_at, updated_at) VALUES (?, ?, ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 				const [insertResults] = await db.executeQuery(query, [user_id, results[0]["id"], user_name, user_picture]);
+
+				console.log(insertResults);
+				
 	
 				// 3. 挿入されたchat_usersテーブルのIDを取得
 				const chatUserId = insertResults.insertId;
 
-				console.log("chatUSerID" + chatUserId);
-				
-	
 				// 4. 中間テーブルにUUIDを挿入（重複エラー時に再試行）
 				await this.insertUUID(chatUserId);
 
 				// 5. chatIdentitiesテーブルにデータを挿入
-				await this.insertChatIdentities(results[0]["id"], chatUserId)
+				await this.insertChatIdentities()
+
+				// 同じユーザーかを判断する
+				if(await this.checkIfUserIdentityExisted(user_id)  == false){
+					const identity_id = await this.insertUserIndentities()
+					await this.insertUserManagers(identity_id, chatUserId)
+				}else{
+					const identity_id = await this.selectUserIndentities(user_id)
+					await this.insertUserManagers(identity_id, chatUserId)
+				}
+
+		
+				
 			} else {
 				throw new DatabaseQueryError("管理者のアカウントIDが存在しません")
 			}
@@ -41,34 +50,16 @@ class DatabaseQuery{
 		
 	}
 
-	async insertChatIdentities(admin_id, user_id){
-		const query = 'INSERT INTO chat_identities (original_admin_id, chat_user_id, created_at, updated_at) VALUES (?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+	async insertChatIdentities(){
+		const query = 'INSERT INTO chat_identities (created_at, updated_at) VALUES (CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 		try{
-			await db.executeQuery(query, [admin_id, user_id]);
+			await db.executeQuery(query);
 		}catch(error){
 			if (!(error instanceof DatabaseQueryError)) {
 				throw new DatabaseQueryError('chatIdentitiesテーブルへのデータの挿入でエラーが発生しました。', error);
 			}
 		}
 		
-	}
-
-	async insertUUID(chatUserId){
-		const query = 'INSERT INTO user_entities (entity_uuid, related_id, entity_type, created_at, updated_at) VALUES (UUID(), ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
-		while(true){
-			try{
-				await db.executeQuery(query, [chatUserId, 'user']);
-				return;// 成功したらループを抜ける
-			}catch(err){
-				if (err.code === 'ER_DUP_ENTRY') {
-		
-					// ユニーク制約違反が発生した場合、再試行
-					continue;
-				} else {
-					throw err; // その他のエラーの場合はそのままエラーをスロー
-				}
-			}
-		}
 	}
 	
 	async checkIfUserExists(userId, account_id){
@@ -101,8 +92,87 @@ class DatabaseQuery{
 		}catch(error){
 			throw new DatabaseQueryError('getChannelTokenAndSecretToeknに失敗しました', error);
 		}
+	}
+
+
+	async insertUserIndentities(){
+		try{
+			const query = 'INSERT INTO user_identities (created_at, updated_at) VALUES (CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+			while(true){
+				try{
+					const [results] = await db.executeQuery(query);
+					return results.insertId;// 成功したらループを抜ける
+				}catch(err){
+					if (err.code === 'ER_DUP_ENTRY') {
+			
+						// ユニーク制約違反が発生した場合、再試行
+						continue;
+					} else {
+						throw err; // その他のエラーの場合はそのままエラーをスロー
+					}
+				}
+			}
+			
+		}catch(error){
+			throw new DatabaseQueryError('insertUserIndentitiesテーブルにデータを挿入する際にエラーが発生しました', error);
+		}
+	}
+
+	async selectUserIndentities(userId){
+		try{
+			const query = 'SELECT user_identities.id FROM user_identities INNER JOIN user_managers ON user_identities.id = user_managers.user_identity_id INNER JOIN chat_users ON user_managers.chat_user_id = chat_users.id WHERE chat_users.user_id = ?' ;
+			const [results] = await db.executeQuery(query, [userId]);
+
+			console.log(results[0]["id"]);
+			
+
+			return results[0]["id"]
+
+			
+		}catch(error){
+			throw new DatabaseQueryError('insertUserIndentitiesテーブルにデータを挿入する際にエラーが発生しました', error);
+		}
+	}
+
+	async insertUserManagers(user_identity_id, chat_user_id){
+		try{
+			const query = 'INSERT INTO user_managers (user_identity_id, chat_user_id, created_at, updated_at) VALUES (?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+			await db.executeQuery(query, [user_identity_id, chat_user_id]);
+		}catch(error){
+			throw new DatabaseQueryError(' user_managersテーブルにデータを挿入する際にエラーが発生しました', error);
+		}
+	}
+
+	async checkIfUserIdentityExisted(userId){
+		try{
+			const query = 'SELECT user_id FROM chat_users WHERE user_id = ?';
+			const [results] = await db.executeQuery(query, [userId]);
+
+			return results.length > 1
+		}catch(error){
+			console.log(error);
+			
+		}
+
 		
-	
+	}
+
+	async insertUUID(chatUserId){
+		const query = 'INSERT INTO user_entities (entity_uuid, related_id, entity_type, created_at, updated_at) VALUES (UUID(), ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+		while(true){
+			try{
+				await db.executeQuery(query, [chatUserId, 'user']);
+				return;// 成功したらループを抜ける
+			}catch(err){
+				if (err.code === 'ER_DUP_ENTRY') {
+		
+					// ユニーク制約違反が発生した場合、再試行
+					continue;
+				} else {
+					throw err; // その他のエラーの場合はそのままエラーをスロー
+				}
+			}
+		}
 	}
 }
 

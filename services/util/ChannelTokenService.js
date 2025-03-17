@@ -13,8 +13,6 @@ class ChannelTokenService{
                   const decryptService = new DecryptService(tokens)
                   const decryptedData = await decryptService.decryptData();
 
-                  console.log(decryptedData)
-                  console.log("i9i9i");
                   
                   return decryptedData
             } catch (error) {

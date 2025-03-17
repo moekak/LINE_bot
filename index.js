@@ -10,12 +10,20 @@ const LineApiService = require('./services/util/LineApiService.js');
 const WriteErrorLog = require('./services/util/WriteErrorLog.js');
 const MessageTemplateGeneratorService = require('./services/util/MessageTemplateGeneratorService.js');
 const ChannelTokenService = require('./services/util/ChannelTokenService.js');
+const SocketService = require('./services/util/SokcetService.js');
+
 
 
 // nodeサーバーをポート3001で起動
 const port = process.env.PORT || 3001;
+let socketService
 app.listen(port, () => {
+
     console.log(`Server is running on port ${port}`);
+    socketService = new SocketService(process.env.SOCKET_URL)
+    setInterval(()=>{
+        socketService.sendHeartbeat()
+    },10000)
 });
 
 
@@ -48,11 +56,6 @@ const validateSignatureWithMultipleSecrets = async (body, signature) =>{
 }
 
 
-let account_info={
-    user_account_id : "",
-}
-
-
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try{
 
@@ -70,17 +73,16 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 channelSecret: global.currentConfig.channelSecret
             });
     
-            // user IDのみを取得してデータベースに保存する
-            account_info["user_account_id"] = JSON.parse(body).events[0].source.userId
-            
             // 全てのeventsに対して非同期処理を同時に実行
-            Promise
-                .all(events.map(event => handleEvent(event, client)))
-                .then((result) => res.json(result))
-                .catch((err) => {
-                    console.error(err);
-                    res.status(500).end();
-                });
+            Promise.all(events.map(event => {
+                const userId = event.source.userId;
+                handleEvent(event, client, userId)
+            }))
+            .then((result) => res.json(result))
+            .catch((err) => {
+                console.error(err);
+                res.status(500).end();
+            });
         } else {
             await writeErrorLog.writeLog('署名検証失敗')
             res.sendStatus(403);
@@ -93,38 +95,32 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
 
 // イベントハンドラー
-const handleEvent = async (event, client) => {
+const handleEvent = async (event, client, userId) => {
     try{
 
         const lineApiService = new LineApiService()
         const messageTemplateGeneratorError = new MessageTemplateGeneratorService()
         const admin_user_id = await lineApiService.getAdminLineAccountInfo();
-
-        console.log("関数呼び出し");
-        
-
-
         // もしLINE内にメッセージが送られてきた場合
         if (event.type === 'message' && event.message.type === 'text') {
-
-            console.log("message!");
-            
-            return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
+            return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, userId));
 
         } else if (event.type === 'follow') {
 
-            console.log("follow!!!!!");
-            
-            
             // もしすでに追加があった場合は初回メッセージのボタンではなく、別のメッセージボタンを送信する
-            if(await databaseQueryService.checkIfUserExists(account_info["user_account_id"], admin_user_id)){
-                return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, account_info["user_account_id"]));
+            if(await databaseQueryService.checkIfUserExists(userId, admin_user_id)){
+                return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, userId));
             }
 
-            const user_data = await lineApiService.getUserLineName(account_info["user_account_id"]);
-            await databaseQueryService.insertUserID(account_info["user_account_id"], admin_user_id, user_data[0], user_data[1]);
+            const user_data = await lineApiService.getUserLineName(userId);
+            const inserteduserData = await databaseQueryService.insertUserID(userId, admin_user_id, user_data[0], user_data[1]);
 
-            return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateGreetingMessageTemplate(admin_user_id, account_info["user_account_id"]));
+
+            socketService.sendDataSocket(inserteduserData)
+            console.log(inserteduserData);
+            
+
+            return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateGreetingMessageTemplate(admin_user_id, userId));
 
         } else {
             // eventがmessageでもfollowでもない場合、何も処理しない

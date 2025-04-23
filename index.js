@@ -84,7 +84,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 res.status(500).end();
             });
         } else {
-            await writeErrorLog.writeLog('署名検証失敗')
+            await writeErrorLog.writeLog('署名検証失敗', {
+                signature: signature,
+                bodyLength: body.length,
+                bodyPreview: typeof body === 'string' ? body.substring(0, 100) : JSON.stringify(body).substring(0, 100)
+            });
             res.sendStatus(403);
         }
     }catch(error){
@@ -117,8 +121,6 @@ const handleEvent = async (event, client, userId) => {
 
 
             socketService.sendDataSocket(inserteduserData)
-            console.log(inserteduserData);
-            
 
             return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateGreetingMessageTemplate(admin_user_id, userId));
 

@@ -84,11 +84,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 res.status(500).end();
             });
         } else {
-            await writeErrorLog.writeLog('署名検証失敗', {
-                signature: signature,
-                bodyLength: body.length,
-                bodyPreview: typeof body === 'string' ? body.substring(0, 100) : JSON.stringify(body).substring(0, 100)
-            });
+            // より詳細なエラーログ - 1つの文字列に統合
+            const bodyPreview = typeof body === 'string' 
+            ? body.substring(0, 100) 
+            : JSON.stringify(body).substring(0, 100);
+            await writeErrorLog.writeLog(`署名検証失敗 - Signature: ${signature}, BodyLength: ${body.length}, BodyPreview: ${bodyPreview}`);
             res.sendStatus(403);
         }
     }catch(error){

@@ -105,6 +105,48 @@ class DatabaseQuery{
 			}
 		}
 	}
+
+
+	async insertUUID(chatUserId){
+		const query = 'INSERT INTO user_entities (entity_uuid, related_id, entity_type, created_at, updated_at) VALUES (UUID(), ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+		while(true){
+			try{
+				await db.executeQuery(query, [chatUserId, 'user']);
+				return;// 成功したらループを抜ける
+			}catch(err){
+				if (err.code === 'ER_DUP_ENTRY') {
+					// ユニーク制約違反が発生した場合、再試行
+					continue;
+				} else {
+					throw err; // その他のエラーの場合はそのままエラーをスロー
+				}
+			}
+		}
+	}
+
+	
+	async insertLineTestSender(userId, name, image){
+		const query = 'INSERT INTO line_test_senders (user_id, account_name, user_picture,  created_at, updated_at) VALUES (?, ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+		
+		try{
+			await db.executeQuery(query, [userId, name, image]);
+			return;
+		}catch(err){
+			throw err; // その他のエラーの場合はそのままエラーをスロー
+		}
+		
+	}
+	async checkIfTestSenderExists(userId){
+		if(!userId){
+			throw new DatabaseQueryError("userIdが空です。")
+		}
+
+		const query = 'SELECT EXISTS(SELECT 1 FROM line_test_senders WHERE user_id = ?) AS userExists';
+		const [results] = await db.executeQuery(query, [userId]);
+
+		return results[0].userExists === 1
+
+	}
 }
 
 

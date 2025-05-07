@@ -1,11 +1,14 @@
 const { default: axios } = require("axios");
 const LineApiError = require("../error/LineApiError");
+require('dotenv').config();
 
 class LineApiService{
       constructor() {
-
-            if(!global.currentConfig.channelAccessToken) throw new LineApiError("channelAccessTokenがありません")
-            this.channelAccessToken = global.currentConfig.channelAccessToken;
+            if(global.currentConfig?.channelAccessToken){
+                  this.channelAccessToken = global.currentConfig.channelAccessToken;  
+            }else{
+                  this.channelAccessToken = process.env.TEST_ACCESS_TOKEN
+            }
             this.baseUrl = process.env.LINE_API_URL;
             this.profileUrl = process.env.LINE_API_PROFILE_URL;
       }

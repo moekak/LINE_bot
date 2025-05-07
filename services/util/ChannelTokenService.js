@@ -1,6 +1,7 @@
 const ChannelTokenError = require("../error/ChannelTokenError");
 const DatabaseQuery = require("./DatabaseQueryService");
 const DecryptService = require("./DecryptService");
+require('dotenv').config();
 
 class ChannelTokenService{
       constructor(){
@@ -13,7 +14,7 @@ class ChannelTokenService{
                   const decryptService = new DecryptService(tokens)
                   const decryptedData = await decryptService.decryptData();
 
-                  
+                  decryptedData.push({"channelAccessTokennn" : process.env.TEST_ACCESS_TOKEN, channelSecret: process.env.TEST_CHANNEL_SECRET})
                   return decryptedData
             } catch (error) {
                   throw new ChannelTokenError(error)

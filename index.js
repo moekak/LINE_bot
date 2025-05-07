@@ -11,7 +11,7 @@ const WriteErrorLog = require('./services/util/WriteErrorLog.js');
 const MessageTemplateGeneratorService = require('./services/util/MessageTemplateGeneratorService.js');
 const ChannelTokenService = require('./services/util/ChannelTokenService.js');
 const SocketService = require('./services/util/SokcetService.js');
-
+const lineApiService = new LineApiService()
 
 
 // nodeサーバーをポート3001で起動
@@ -35,8 +35,6 @@ const channelTokenService = new ChannelTokenService()
 // 複数のChannel Secretで検証を行う関数
 const validateSignatureWithMultipleSecrets = async (body, signature) =>{
     let configs = await channelTokenService.generateConfig()
-
-
     for (const config of configs) {
         try {
             const hash = crypto
@@ -55,7 +53,6 @@ const validateSignatureWithMultipleSecrets = async (body, signature) =>{
     return false; // 全ての検証が失敗した場合
 }
 
-
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try{
 
@@ -64,7 +61,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     
         if (await validateSignatureWithMultipleSecrets(body, signature)) {
             const events = JSON.parse(body).events;
-
+            const destination = JSON.parse(body).destination;
             //LINEのAPIにアクセスするためのクライアントを作成
             // このクライアントを通じてメッセージ送信などのAPIリクエストを行う
     
@@ -102,7 +99,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 const handleEvent = async (event, client, userId) => {
     try{
 
-        const lineApiService = new LineApiService()
         const messageTemplateGeneratorError = new MessageTemplateGeneratorService()
         const admin_user_id = await lineApiService.getAdminLineAccountInfo();
         // もしLINE内にメッセージが送られてきた場合
@@ -126,9 +122,6 @@ const handleEvent = async (event, client, userId) => {
 
         } else {
             // eventがmessageでもfollowでもない場合、何も処理しない
-            console.log("else!!!!");
-            console.log(event.type);
-            
             return Promise.resolve(null);
         }
 
@@ -138,6 +131,65 @@ const handleEvent = async (event, client, userId) => {
     } 
 
 }
+
+
+
+
+// テスト送信用
+const validateSignatureWithSingleSecret = async (bodyBuffer, signature) => {
+    try {
+        const config = {channelAccessToken : process.env.TEST_ACCESS_TOKEN, channelSecret: process.env.TEST_CHANNEL_SECRET}; // configは1つだけ返すようにする
+        const hash = crypto
+            .createHmac('SHA256', config.channelSecret)
+            .update(bodyBuffer)
+            .digest('base64');
+
+        if (hash === signature) {
+            return true;
+        }
+    } catch (error) {
+        console.log(error);
+        
+        await writeErrorLog.writeLog("Validation error", error);
+    }
+
+    return false; // 失敗した場合
+};
+
+app.post('/webhook/test/message/', express.raw({ type: 'application/json' }), async (req, res) => {
+    try{
+
+        const signature = req.headers['x-line-signature'];
+        const bodyBuffer  = req.body;
+    
+        if (await validateSignatureWithSingleSecret(bodyBuffer , signature)) {
+            const json = JSON.parse(bodyBuffer.toString('utf-8'));
+            const events = json.events;
+            const userId = events[0]["source"]["userId"]
+            
+            if((events[0].type === 'follow')){
+                if(await databaseQueryService.checkIfTestSenderExists(userId)){
+                    return
+                }
+                const user_data = await lineApiService.getUserLineName(userId);
+
+                await databaseQueryService.insertLineTestSender(userId, user_data[0], user_data[1])
+            }
+
+            
+
+        } else {
+
+        }
+    }catch(error){
+        await writeErrorLog.writeLog(error)
+    }
+
+});
+
+
+
+
 
 //リクエストボディをJSONフォーマットとして解析するための設定
 app.use(express.json());

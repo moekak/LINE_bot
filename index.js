@@ -61,7 +61,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     
         if (await validateSignatureWithMultipleSecrets(body, signature)) {
             const events = JSON.parse(body).events;
-            const destination = JSON.parse(body).destination;
             //LINEのAPIにアクセスするためのクライアントを作成
             // このクライアントを通じてメッセージ送信などのAPIリクエストを行う
     
@@ -99,6 +98,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 const handleEvent = async (event, client, userId) => {
     try{
 
+        const lineApiService = new LineApiService()
         const messageTemplateGeneratorError = new MessageTemplateGeneratorService()
         const admin_user_id = await lineApiService.getAdminLineAccountInfo();
         // もしLINE内にメッセージが送られてきた場合

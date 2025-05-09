@@ -55,6 +55,11 @@ class DatabaseQuery{
 	}
 	
 	async checkIfUserExists(userId, account_id){
+
+		console.log(`account_id: ${account_id}`);
+		
+
+		
 		if(!userId){
 			throw new DatabaseQueryError("userIdが空です。")
 		}
@@ -63,6 +68,9 @@ class DatabaseQuery{
 		}
 		const selectAdminIdQuery = "SELECT id FROM line_accounts WHERE account_id = ? ";
 		const [adminResults] = await db.executeQuery(selectAdminIdQuery, [account_id]);
+
+		console.log(adminResults);
+		
 		const admin_id = adminResults[0].id
 
 		const query = 'SELECT EXISTS(SELECT 1 FROM chat_users WHERE user_id = ? AND account_id = ?) AS userExists';

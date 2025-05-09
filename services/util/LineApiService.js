@@ -4,7 +4,12 @@ require('dotenv').config();
 
 class LineApiService{
       constructor() {
+            
+            // if(!global.currentConfig.channelAccessToken) throw new LineApiError("channelAccessTokenがありません")
+            //       this.channelAccessToken = global.currentConfig.channelAccessToken;
             if(global.currentConfig?.channelAccessToken){
+                  console.log("22222");
+                  
                   this.channelAccessToken = global.currentConfig.channelAccessToken;  
             }else{
                   this.channelAccessToken = process.env.TEST_ACCESS_TOKEN

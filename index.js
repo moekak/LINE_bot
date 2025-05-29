@@ -156,7 +156,7 @@ const validateSignatureWithSingleSecret = async (bodyBuffer, signature) => {
     return false; // 失敗した場合
 };
 
-app.post('/webhook/test/message/', express.raw({ type: 'application/json' }), async (req, res) => {
+app.post('/webhook/test/message', express.raw({ type: 'application/json' }), async (req, res) => {
     try{
 
         const signature = req.headers['x-line-signature'];
@@ -165,6 +165,9 @@ app.post('/webhook/test/message/', express.raw({ type: 'application/json' }), as
         if (await validateSignatureWithSingleSecret(bodyBuffer , signature)) {
             const json = JSON.parse(bodyBuffer.toString('utf-8'));
             const events = json.events;
+
+            console.log(events[0]["source"]);
+            
             const userId = events[0]["source"]["userId"]
             
             if((events[0].type === 'follow')){

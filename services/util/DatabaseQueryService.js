@@ -2,6 +2,27 @@ const DatabaseQueryError = require("../error/DatabaseQueryError.js");
 const db = require("../Database.js");
 
 class DatabaseQuery{
+	async getCode(account_id){
+		const accountQuery = 'SELECT id FROM line_accounts WHERE account_id = ?';
+		const [accountResults] = await db.executeQuery(accountQuery, [account_id]);
+		const query = 'SELECT prefix FROM chat_users_code_prefix_link AS link INNER JOIN chat_users_code_prefixes AS prefixes ON link.chat_users_code_prefix_id = prefixes.id WHERE link.account_id = ?';
+		const [results] = await db.executeQuery(query, [accountResults[0]["id"]]);
+
+		return results[0]["prefix"]
+		
+	}
+
+	async insertClientCode(user_id, clientCode){
+
+		console.log("userID" + user_id);
+		console.log("顧客コード" + clientCode);
+		
+		
+		const query = 'INSERT INTO chat_user_details (user_id, client_code, created_at, updated_at) VALUES (?, ?,CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+		await db.executeQuery(query, [user_id, clientCode]);
+	}
+	
+
 	async insertUserID(user_id, account_id, user_name, user_picture){
 		try{
 			if (user_picture == undefined){

@@ -6,6 +6,7 @@ const { Client} = require('@line/bot-sdk');
 const app = express();
 // MySQLデータベースとのやり取りをPromiseベースで行えるライブラリ
 const DatabaseQueryService = require('./services/util/DatabaseQueryService.js');
+const GenerateCode = require("./services/util/GenerateCode.js")
 const LineApiService = require('./services/util/LineApiService.js');
 const WriteErrorLog = require('./services/util/WriteErrorLog.js');
 const MessageTemplateGeneratorService = require('./services/util/MessageTemplateGeneratorService.js');
@@ -114,7 +115,10 @@ const handleEvent = async (event, client, userId) => {
 
             const user_data = await lineApiService.getUserLineName(userId);
             const inserteduserData = await databaseQueryService.insertUserID(userId, admin_user_id, user_data[0], user_data[1]);
-
+            
+            const generateCode = new GenerateCode(admin_user_id)
+            const clientCode = await generateCode.generateCode()
+            await databaseQueryService.insertClientCode(inserteduserData[0]["id"], clientCode)
 
             socketService.sendDataSocket(inserteduserData)
 

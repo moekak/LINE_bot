@@ -114,12 +114,22 @@ const handleEvent = async (event, client, userId) => {
                 return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, userId));
             }
 
+        console.log("=== デバッグ開始 ===");
+        console.log("global.currentConfig:", global.currentConfig);
+        console.log("userId:", userId);
 
-            // linkToken生成
-            const userMapping = new UserMapping(global.currentConfig.channelAccessToken, userId)
-            await userMapping.generateLinkToken()
-
-            const user_data = await lineApiService.getUserLineName(userId);
+        try {
+            console.log("UserMappingインスタンス作成前");
+            const userMapping = new UserMapping(global.currentConfig.channelAccessToken, userId);
+            console.log("UserMappingインスタンス作成後");
+            
+            console.log("generateLinkToken呼び出し前");
+            await userMapping.generateLinkToken();
+            console.log("generateLinkToken呼び出し後");
+        } catch(error) {
+            console.error("エラーキャッチ:", error);
+        }
+                    const user_data = await lineApiService.getUserLineName(userId);
             const inserteduserData = await databaseQueryService.insertUserID(userId, admin_user_id, user_data[0], user_data[1]);
             
             const generateCode = new GenerateCode(admin_user_id)

@@ -1,3 +1,5 @@
+
+const { default: axios } = require("axios");
 class UserMapping{
       constructor(channelAccessToken, targetUserId){
             this.channelAccessToken = channelAccessToken
@@ -5,7 +7,9 @@ class UserMapping{
       }
       generateLinkToken(){
             // linkTokenを取得するルート
-            app.get('/get-link-token', async (req, res) => {
+            console.log("linkToken取得");
+            
+            axios.get('/get-link-token', async (req, res) => {
                   try {
                         const response = await axios.post(
                               `https://api.line.me/v2/bot/user/${this.targetUserId}/linkToken`,

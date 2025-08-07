@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+</head>
+<body>
+      <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+      <script>
+            document.addEventListener("DOMContentLoaded", async () => {
+            await liff.init({ liffId: '2007711244-rZMaPZdR' });
+
+            // すでにログイン済み前提
+            const urlParams = new URLSearchParams(window.location.search);
+            const linkToken = urlParams.get('linkToken');
+
+            if (!linkToken) {
+                  alert("linkToken が見つかりません");
+                  return;
+            }
+
+            try {
+                  await liff.linkTargetPicker(linkToken);
+                  await fetchPost()
+                  alert("ユーザー連携が完了しました！");
+            } catch (e) {
+                  console.error("リンク処理エラー:", e);
+                  alert("連携に失敗しました");
+            }
+
+            const fetchPost = async() =>{
+                  const profile = await liff.getProfile(); // liff_user_id を取得
+                  const linkToken = new URLSearchParams(location.search).get('linkToken');
+
+                  // POSTで送信する
+                  await fetch('/api/link-complete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                        link_token: linkToken,
+                        liff_user_id: profile.userId,
+                        display_name: profile.displayName
+                  })
+});
+            }
+      });
+</script>
+
+</body>
+</html>

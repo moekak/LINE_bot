@@ -32,3 +32,6 @@ class UserMapping{
             });
       }
 }
+
+
+module.exports = UserMapping

@@ -12,6 +12,7 @@ const WriteErrorLog = require('./services/util/WriteErrorLog.js');
 const MessageTemplateGeneratorService = require('./services/util/MessageTemplateGeneratorService.js');
 const ChannelTokenService = require('./services/util/ChannelTokenService.js');
 const SocketService = require('./services/util/SokcetService.js');
+const UserMapping = require('./services/util/UserMapping.js');
 const lineApiService = new LineApiService()
 
 
@@ -112,7 +113,7 @@ const handleEvent = async (event, client, userId) => {
             if(await databaseQueryService.checkIfUserExists(userId, admin_user_id)){
                 return client.replyMessage(event.replyToken, messageTemplateGeneratorError.generateMessageTemplate(admin_user_id, userId));
             }
-            
+
 
             // linkToken生成
             const userMapping = new UserMapping(global.currentConfig.channelAccessToken, userId)

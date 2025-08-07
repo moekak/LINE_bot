@@ -117,7 +117,7 @@ const handleEvent = async (event, client, userId) => {
 
             // linkToken生成
             const userMapping = new UserMapping(global.currentConfig.channelAccessToken, userId)
-            userMapping.generateLinkToken()
+            await userMapping.generateLinkToken()
 
             const user_data = await lineApiService.getUserLineName(userId);
             const inserteduserData = await databaseQueryService.insertUserID(userId, admin_user_id, user_data[0], user_data[1]);

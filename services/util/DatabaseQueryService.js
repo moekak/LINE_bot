@@ -14,7 +14,7 @@ class DatabaseQuery{
 
 			if (results.length > 0) {
 				// 2. chat_users にデータを挿入
-				const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, created_at, updated_at) VALUES (?, ?, ?, ?, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+				const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, is_added, created_at, updated_at) VALUES (?, ?, ?, ?, 1, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 				const [insertResults] = await db.executeQuery(query, [user_id, results[0]["id"], user_name, user_picture]);
 				// 3. 挿入されたchat_usersテーブルのIDを取得
 				const chatUserId = insertResults.insertId;
@@ -55,31 +55,39 @@ class DatabaseQuery{
 		
 	}
 	
-	async checkIfUserExists(userId, account_id){
-
-		console.log(`account_id: ${account_id}`);
+	async checkIfUserExists(userId, account_id) {
+		console.log("checkIfUserExists");
 		
+		if (!userId) {
+			throw new DatabaseQueryError("userIdが空です。");
+		}
+		if (!account_id) {
+			throw new DatabaseQueryError("accountIdが空です。");
+		}
 
-		
-		if(!userId){
-			throw new DatabaseQueryError("userIdが空です。")
-		}
-		if(!account_id){
-			throw new DatabaseQueryError("accountIdが空です。")
-		}
-		const selectAdminIdQuery = "SELECT id FROM line_accounts WHERE account_id = ? ";
+		const selectAdminIdQuery = "SELECT id FROM line_accounts WHERE account_id = ?";
 		const [adminResults] = await db.executeQuery(selectAdminIdQuery, [account_id]);
+		const admin_id = adminResults[0]?.id;
 
-		console.log(adminResults);
-		
-		const admin_id = adminResults[0].id
+		if (!admin_id) {
+			throw new DatabaseQueryError("対応するadmin_idが見つかりませんでした。");
+		}
 
 		const query = 'SELECT EXISTS(SELECT 1 FROM chat_users WHERE user_id = ? AND account_id = ?) AS userExists';
 		const [results] = await db.executeQuery(query, [userId, admin_id]);
 
-		return results[0].userExists === 1
+		const exists = results[0].userExists === 1;
 
+		if (exists) {
+			console.log("exsist!!!");
+			
+			const updateQuery = 'UPDATE chat_users SET is_added = "1" WHERE user_id = ? AND account_id = ?';
+			await db.executeQuery(updateQuery, [userId, admin_id]);
+		}
+
+		return exists;
 	}
+
 
 	async getChannelTokenAndSecretToekn(){
 		try{

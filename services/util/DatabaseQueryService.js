@@ -14,7 +14,7 @@ class DatabaseQuery{
 
 			if (results.length > 0) {
 				// 2. chat_users にデータを挿入
-				const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, is_added, created_at, updated_at) VALUES (?, ?, ?, ?, 1, CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
+				const query = 'INSERT INTO chat_users (user_id, account_id,  line_name, user_picture, is_added, created_at, updated_at) VALUES (?, ?, ?, ?, "1", CONVERT_TZ(NOW(), "+00:00", "+09:00"), CONVERT_TZ(NOW(), "+00:00", "+09:00"))';
 				const [insertResults] = await db.executeQuery(query, [user_id, results[0]["id"], user_name, user_picture]);
 				// 3. 挿入されたchat_usersテーブルのIDを取得
 				const chatUserId = insertResults.insertId;

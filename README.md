@@ -81,7 +81,20 @@ pm2 start index.js
 
 ---
 
-### 6. その他重要事項
+### 6. ドメイン変更した場合
+(1). `.env`の変更
+```bash
+DECRYPT_URL=https://chat-manager.info/api/decrypt //チャット管理画面URL
+SYSTEM_URL=https://chat-system.info/chat/ //チャット画面URL
+SOCKET_URL=https://chat-socket.info:3000　//　チャットソケットURL
+```
+
+---
+
+### 7. その他重要事項
 #### a. envファイルの切り替え
 本番環境と開発環境で、`.env`ファイルの中身の切り替えを行ってください
+
+
+
 

@@ -56,7 +56,6 @@ const validateSignatureWithMultipleSecrets = async (body, signature) =>{
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try{
-
         const signature = req.headers['x-line-signature'];
         const body = req.body.toString('utf-8');
     
@@ -68,6 +67,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             const client = new Client({
                 channelAccessToken: global.currentConfig.channelAccessToken,
                 channelSecret: global.currentConfig.channelSecret
+                // channelAccessToken: global.currentConfig.channelAccessToken,
+                // channelSecret: global.currentConfig.channelSecret
             });
     
             // 全てのeventsに対して非同期処理を同時に実行
